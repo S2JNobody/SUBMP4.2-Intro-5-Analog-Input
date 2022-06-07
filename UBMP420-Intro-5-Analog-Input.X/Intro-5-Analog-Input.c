@@ -52,6 +52,10 @@ void bin_to_dec(unsigned char bin)
        dec0 = dec0 - 10;
    }
 }
+
+void bin_to_ASCII() {
+    ;
+}
  
 int main(void)
 {
@@ -82,7 +86,16 @@ int main(void)
    {
        // Read selected ADC channel and display the analog result on the LEDs
        rawADC = ADC_read();
-       LATC = rawADC;
+       LATC = rawADC << 4;
+       H1_serial_write(rawADC);
+
+       // Convert ADC result to decimal and write each digit serially in ASCII
+       bin_to_dec(rawADC);
+       H1_serial_write(dec2 + 0x30);   // Convert each digit to ASCII
+       H1_serial_write(dec1 + 0x30);
+       H1_serial_write(dec0 + 0x30);
+       H1_serial_write(CR);            // Carriage return character
+       H1_serial_write(LF);            // Line feed character
       
        // Add serial write code from the program analysis activities here:
       
@@ -166,6 +179,10 @@ The above statement makes ports 1-4, and 7-8 be output, and 5-6 be input
 *      as both input pins and analog pins. Describe how the ADC_config()
 *      function configures the Q1 pin for analog input.
 *
+
+It sets a variable named ANSELC to 0b00001000
+(aka turning the Q1 to 1 and all others to 0, 1 for input 0 for output)
+
 * 5.   The single ADC (analog-to-digital coverter) in the PIC16F1459 uses an
 *      input multiplexer (mux) to switch one analog input at a time to the ADC.
 *      After changing the input, a short delay is necessary to allow the input
@@ -177,15 +194,27 @@ The above statement makes ports 1-4, and 7-8 be output, and 5-6 be input
 *      (ANTIM) as the ADC input. What other inputs are available? (Hint: see
 *      the UBMP420.h file)
 *
+
+quite a few. (Come back, boring question to answer)
+
 *      The ADC_select_channel() function does not add a delay after switching
 *      a new input to the ADC, but there is another function that switches
 *      inputs, adds a delay, and performs the analog to digital conversion.
 *      What is this function called? Why do you think it is not used here?
 *
+
+That function actually returns a value, the function we use is only for configuring
+
 * 6.   This program contains the bin_to_dec() function, which demonstrates a
 *      simple method of converting an 8-bit binary value to three decimal
 *      digits. Can you determine how it works? Explain, or use a flow chart
 *      to describe its operation.
+
+The function will remove 100 from the binary value as many times as it can and increase the first
+digit by one each time. (Digit will be number of 100s taken away)
+The same process is done with taking away tens and increasing the second digital
+The value of the binary number remaining will be added to the third digit, since it only retains the ones.
+
 *
 * 7.   Two serial data functions are included in the Simple-Serial.c file.
 *      These functions enable the program to output RS-232 formatted serial
@@ -218,6 +247,11 @@ The above statement makes ports 1-4, and 7-8 be output, and 5-6 be input
       
 *      Can you record or capture the digital serial data? What is the analogue
 *      value that it transmitted?
+
+u117
+Analog value: 
+
+
 *
 * 8.   Rather than interpreting or converting the analogue value yourself, this
 *      next block of code can be added to your program to convert the analog
@@ -243,6 +277,9 @@ The above statement makes ports 1-4, and 7-8 be output, and 5-6 be input
 *
 *      Can you determine what this statement is doing, and why an AND operation
 *      is being used instead of just over-writing the TRISC value? Explain.
+
+The AND operation ONLY overwrites the bits that are zeros. The bits that are 1's stay the same
+
 *
 * 10.  The data transmission loop of the H1_serial_write() function is shown
 *      below:
@@ -264,10 +301,17 @@ The above statement makes ports 1-4, and 7-8 be output, and 5-6 be input
 * 
 *      Explain how the AND operation used in the if condition can determine
 *      the state of the least significant data bit.
+
+All the bits except the least significant bits will become 0 because of the AND operation. Then if the LSB is
+0, the entire 8bit digit is 0, and if the LSB is 1, the 8bit digit is not 0.
+
 *
 *      After the least significant data bit is transmitted, how are the other
 *      bits in the data byte isolated and transmitted?
 *     
+
+The Data is shifted right so a new bit ends up in the last bit position
+
 *
 * Programming Activities
 *
@@ -276,6 +320,9 @@ The above statement makes ports 1-4, and 7-8 be output, and 5-6 be input
 *      each of these numeric digits to the ASCII code representing the digit.
 *      Can you make a bin_to_ASCII() function that would eliminate the need
 *      for you to offset the values to ASCII separately, as was done here?
+
+
+
 *
 * 2.   Does your UBMP4 have Q1 installed? If installed, it will be easier to
 *      use Q1 as an input device instead of the temperature module. Q1 can
@@ -283,7 +330,7 @@ The above statement makes ports 1-4, and 7-8 be output, and 5-6 be input
 *      or a phototransistor, sensitive to infrared (IR) wavelengths. Try using
 *      your phone's flashlight (ambient light sensor) or an infrared LED to
 *      illuminate Q1.
-*
+*no :)
 *      Create a program to implement threshold detection. Determine the analog
 *      level when Q1 senses low light and again when Q1 senses bright light.
 *      Use conditional code to light an LED when the Q1 light level rises or
