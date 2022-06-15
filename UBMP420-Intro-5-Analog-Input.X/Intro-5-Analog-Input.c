@@ -56,6 +56,8 @@ void bin_to_dec(unsigned char bin)
 void bin_to_ASCII() {
     ;
 }
+
+void 
  
 int main(void)
 {
@@ -75,7 +77,7 @@ int main(void)
    FVRCON = FVRCON | 0b00110000;
   
    // Select the on-die temperature indicator module as ADC input
-   ADC_select_channel(ANTIM);
+   ADC_select_channel(ANQ1);
    // Wait the recommended acquisition time before A-D conversion
    __delay_us(200);
   
@@ -84,6 +86,26 @@ int main(void)
   
    while(1)
    {
+       if (read_thing) { //Read the input to see if I got an input
+        serial_bin = 0b00000000;
+
+        for (int i = 0;i < 8;i++) {
+            serial_bit = 0; //TODO: Get serial bits
+
+            if (serial_bit == 1) {
+                serial_bin = (serial_bin | 10000000);
+            }
+
+            serial_bin >> 1; //Shift right one
+        }
+       }
+
+
+       
+
+       __delay_us(104);
+
+       /*
        // Read selected ADC channel and display the analog result on the LEDs
        rawADC = ADC_read();
        LATC = rawADC << 4;
@@ -106,6 +128,7 @@ int main(void)
        {
            RESET();
        }
+       */
    }
 }
  
@@ -339,7 +362,7 @@ The Data is shifted right so a new bit ends up in the last bit position
 * 3.   Create a program that produces a PWM output proportional to an analog
 *      input, or a program that creates a tone having a pitch proportional
 *      to an analog input value.
-*
+* what would I use?
 * 4.   If you have an oscilloscope available, investigate how fast you get the
 *      serial output to transmit. Try setting the bit delays inside the serial
 *      write function to 1 microsecond of delay, instead of 104 and 103. Does
